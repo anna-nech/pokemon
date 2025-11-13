@@ -1,84 +1,43 @@
-const character = {
-    name: "Pikachu",
-    hp: 100,
-    maxHp: 100,
-    elementHP: document.getElementById("health-character"),
-    elementBar: document.getElementById("progressbar-character"),
-};
+import { Pokemon } from "./pokemon.js";
+import { checkWinner } from "./result.js";
+import { clickCounter } from "./counter.js";
 
-const enemy = {
-    name: "Charmander",
-    hp: 100,
-    maxHp: 100,
-    elementHP: document.getElementById("health-enemy"),
-    elementBar: document.getElementById("progressbar-enemy"),
-};
+const logsDiv = document.createElement("div");
+logsDiv.id = "logs";
+document.body.appendChild(logsDiv);
 
-const enemy2 = {
-    name: "Gengar",
-    hp: 100,
-    maxHp: 100,
-    elementHP: document.getElementById("health-enemy2"),
-    elementBar: document.getElementById("progressbar-enemy2"),
-};
+function addLog(message, type = "neutral") {
+  const logs = document.getElementById("logs");
+  const p = document.createElement("p");
+  p.textContent = message;
 
-function updateHp(pokemon) {
-    pokemon.elementBar.style.width = (pokemon.hp / pokemon.maxHp * 100) + "%";
-    pokemon.elementHP.textContent = `${pokemon.hp} / 100`;
+  if (type === "hero") p.style.color = "lime";
+  else if (type === "enemy") p.style.color = "red";
+  else p.style.color = "white";
 
-    if (pokemon.hp > 75) {
-        pokemon.elementBar.style.background = "lime";
-    } else if(pokemon.hp > 50){
-        pokemon.elementBar.style.background = "yellow";
-    } else if(pokemon.hp >20){
-        pokemon.elementBar.style.background = "orange";
-    } else{
-        pokemon.elementBar.style.background = "red";
-    }
+  logs.prepend(p);
 }
 
-function attack(attacker, defender, minDamage=2, maxDamage=15) {
-    const damage = Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage;
-    defender.hp = Math.max(0, defender.hp - damage);
-    updateHp(defender);
-    console.log(`${attacker.name} атакує ${defender.name} і завдає ${damage} шкоди!`);
-}
+const character = new Pokemon("character", "Pikachu", true);
+const enemy = new Pokemon("enemy", "Charmander");
 
-document.getElementById("dbtn-kick").addEventListener("click", function () { 
-    attack(character, enemy);
-    attack(enemy, character);
-    if (Winner()) return; 
+document.querySelectorAll("button").forEach(btn => {
+  const handleClick = clickCounter(6);
+  btn.addEventListener("click", () => handleClick(btn));
 });
 
-document.getElementById("kbtn-kick").addEventListener("click", function () {
-    attack(character, enemy, 10, 25);  
-    attack(enemy, character, 5, 15);  
-    if (Winner()) return;
+document.getElementById("dbtn-kick").addEventListener("click", () => {
+  character.attack(enemy, addLog);
+  enemy.attack(character, addLog);
+  if (checkWinner(character, enemy, addLog)) return;
 });
 
-function showResult(message) {
-    const screen = document.getElementById("Result_Window");
-    const text = document.getElementById("Result_Text");
-    text.textContent = message;
-    screen.style.display = "flex"; 
-}
+document.getElementById("kbtn-kick").addEventListener("click", () => {
+  character.attack(enemy, addLog, 10, 25);
+  enemy.attack(character, addLog, 5, 15);
+  if (checkWinner(character, enemy, addLog)) return;
+});
 
-function Winner() {
-    if (character.hp === 0 && enemy.hp === 0) {
-        showResult("Нічия!");
-        return true;     
-    } 
-    if (character.hp === 0) {   
-        showResult(`🎉${enemy.name} переміг! 🎉`);
-        return true;
-    }
-    if (enemy.hp === 0) {
-        showResult(`🎉${character.name} здобув перемогу! 🎉`);
-        return true;
-    }
-    return false;
-}
-
-document.getElementById("Restart_Button").addEventListener("click", function () {
-    location.reload(); 
+document.getElementById("Restart_Button").addEventListener("click", () => {
+  location.reload();
 });
